@@ -4,30 +4,32 @@ A simple, decoupled ride-sharing application built with a microservices architec
  
 ## 🌟 Features
  
-* **User & Captain Auth:** Complete signup, signin, and secure logout (with JWT blacklisting).
-* **Ride Management:** Users create rides, and Captains can accept them, with status managed by the Ride service.
-* **Asynchronous Communication:** Services are decoupled and communicate using RabbitMQ for events like new ride requests and acceptance.
-* **Real-time Notifications:** Uses a **Long Polling** pattern for Captains to receive new ride requests instantly and for Users to monitor ride acceptance.
-* **Data Optimization:** Ride history data is fetched via the Ride service and cached using **Redis** to improve performance.
-* **Captain Availability:** Captains can toggle their availability status.
+* **User & Captain Management:** Complete authentication flow (signup/signin/logout) for both users and captains.
+* **Ride Request & Creation:** Users can request a ride by providing pickup and destination, which creates a ride record and publishes an event to a queue.
+* **Real-time Ride Notification (Long Polling):** Captains use long polling (`/wait-for-new-ride`) to receive real-time notifications for new ride requests from the RabbitMQ queue.
+* **Asynchronous Communication:** Services are decoupled and communicate using a message queue (RabbitMQ) for events like new ride requests and ride acceptance.
+* **Ride History Caching:** Ride history data is fetched from the Ride service and cached using Redis to reduce database load and improve response time.
+* **Secure Token Management:** Uses blacklisting for JWT tokens to securely handle user and captain logout.
  
 ## 🧱 Architecture Overview
  
+The application is composed of four main services, routing through the API Gateway:
+ 
 | Service | Port | Key Responsibilities | Technologies |
 | :--- | :--- | :--- | :--- |
-| **Gateway** | `3000` | API routing and entry point. | Express, `express-http-proxy` |
-| **User** | `3001` | Auth, User Data, Ride History (with Redis caching). | Node.js, Mongoose, Redis, RabbitMQ, JWT |
-| **Captain** | `3002` | Auth, Availability, Live Ride Request Notifications. | Node.js, Mongoose, RabbitMQ, JWT |
-| **Ride** | `3003` | Ride creation and status management. | Node.js, Mongoose, RabbitMQ |
+| **Gateway** | `3000` | Routes all incoming requests to the appropriate service. | `express`, `express-http-proxy` |
+| **User** | `3001` | User Auth, User Data, Ride History (with Redis caching). | Node.js/Express, Mongoose, Redis, RabbitMQ, JWT, Bcrypt |
+| **Captain** | `3002` | Captain Auth, Availability Toggle, Receives Live Ride Requests. | Node.js/Express, Mongoose, RabbitMQ, JWT, Bcrypt |
+| **Ride** | `3003` | Manages the creation, acceptance, and status updates of all rides. | Node.js/Express, Mongoose, RabbitMQ |
  
 ## ⚙️ Technology Stack
  
-* **Runtime:** Node.js (type: module)
-* **Framework:** Express
-* **Database:** MongoDB (Mongoose)
+* **Backend Runtime:** Node.js (type: module)
+* **Web Framework:** Express
+* **Database:** MongoDB via Mongoose ORM
 * **Message Broker:** RabbitMQ (`amqplib`)
 * **Caching:** Redis (`ioredis`)
-* **Authentication:** JWT, Bcrypt
+* **Authentication:** JWT and Bcrypt
 * **API Gateway:** `express-http-proxy`
  
 ## 🚀 Setup and Installation
